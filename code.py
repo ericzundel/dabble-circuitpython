@@ -1,77 +1,128 @@
-# SPDX-FileCopyrightText: 2018 Kattni Rembor for Adafruit Industries
-#
-# SPDX-License-Identifier: MIT
+# Simple code to read a message from the Dabble App over the DSDTech HM-10 bluetooth module
+# Author: Eric Z. Ayers <ericzundel@gmail.com>
+
 
 """CircuitPython Essentials UART Serial example"""
+import binascii
 import board
 import busio
 import digitalio
 import time
 
-import binascii
+class Dabble():
+    def __init__(self, tx_pin, rx_pin):
+        # busio.UART(tx, rx, ... baudrate=X)
+        self._uart = busio.UART(tx_pin, rx_pin, baudrate=9600, bits=8, parity=None, stop=1, timeout=.05)
 
-def hex_dump(data):
-    hex_str = binascii.hexlify(data).decode()
-    hex_dump_str = ''
-    for i in range(0, len(hex_str), 2):
-        hex_dump_str += hex_str[i:i+2] + ' '
-        if (i + 2) % 64 == 0:
-            hex_dump_str += '\n'
-    return hex_dump_str
+    def hex_dump(data):
+        hex_str = binascii.hexlify(data).decode()
+        hex_dump_str = ''
+        for i in range(0, len(hex_str), 2):
+            hex_dump_str += hex_str[i:i+2] + ' '
+            if (i + 2) % 64 == 0:
+                hex_dump_str += '\n'
+        return hex_dump_str
 
-def read_and_dump():
-    data = uart.read(256)  # read up to 32 bytes
-    #print(data)  # this is a bytearray type
+    def read_message(self):
+        data = self._uart.read(8)
+        if (data is None):
+            return None
 
-    if data is not None:
-        led.value = True
-        print ("Read " + str(len(data)) + " bytes")
+        if (len(data) != 8):
+            print("Expected 8 bytes, got %d" % len(data))
+            return None
 
-        # convert bytearray to string
-        #data_string = ''.join([chr(b) for b in data])
-        #print(data_string, end="")
-        print(hex_dump(data))
+        if (data[0] != 0xff and data[7] != 0x00):
+            print("expected 0xFF at head and 0x00 at end")
+            return None
 
-        led.value = False
+        button_data = data[5]
+        direction_data = data[6]
+        return DabbleGameMessage(button_data, direction_data)
+
+class DabbleGameMessage():
+
+    def __init__(self, button_data, direction_data):
+        self._button_data = button_data
+        self._direction_data = direction_data
+
+    @property
+    def start_pressed(self):
+        return self._button_data & 0x01
+
+    @property
+    def select_pressed(self):
+        return self._button_data & 0x02
+
+    @property
+    def triangle_pressed(self):
+        return self._button_data & 0x04
+
+    @property
+    def circle_pressed(self):
+        return self._button_data & 0x08
+
+    @property
+    def cross_pressed(self):
+        return self._button_data & 0x10
+
+    @property
+    def square_pressed(self):
+        return self._button_data & 0x20
+
+    @property
+    def up_arrow_pressed(self):
+        return self._direction_data & 0x01
+
+    @property
+    def left_arrow_pressed(self):
+        return self._direction_data & 0x02
+
+    @property
+    def down_arrow_pressed(self):
+        return self._direction_data & 0x04
+
+    @property
+    def right_arrow_pressed(self):
+        return self._direction_data & 0x08
+
+    @property
+    def none_pressed(self):
+        return self._button_data == 0x00 and self._direction_data == 0x00
+
+    def __str__(self):
+
+        if self.none_pressed:
+            return "NONE"
+
+        result = ""
+        if self.select_pressed:
+            result += "SELECT "
+        if self.start_pressed:
+            result += "START "
+        if self.triangle_pressed:
+            result += "TRIANGLE "
+        if self.circle_pressed:
+            result += "CIRCLE "
+        if self.cross_pressed:
+            result += "CROSS "
+        if self.square_pressed:
+            result += "SQUARE "
+        if self.up_arrow_pressed:
+            result += "UP "
+        if self.left_arrow_pressed:
+            result += "LEFT "
+        if self.down_arrow_pressed:
+            result += "DOWN "
+        if self.right_arrow_pressed:
+            result += "RIGHT "
 
 
-# Function to send AT command and retrieve response
-def send_at_command(command):
-    uart.write(command)  # Send the command
-    time.sleep(1)  # Wait for the response to be available
-    response = uart.read(100)  # Read up to 100 bytes of response
-    if response is not None:
-        #response = response.decode('ascii').strip()  # Decode bytes to string
-        print(hex_dump(response))
-    return response
+        return result
 
-
-
-# For most CircuitPython boards:
-led = digitalio.DigitalInOut(board.LED)
-
-led.direction = digitalio.Direction.OUTPUT
-
-# busio.UART(tx, rx, ... baudrate=X)
-#uart = busio.UART(board.GP0, board.GP1, baudrate=9600)
-uart = busio.UART(board.GP0, board.GP1, baudrate=9600, bits=8, parity=None, stop=1)
-
-#uart = busio.UART(board.GP4, board.GP5, baudrate=19200)
-#uart = busio.UART(board.GP4, board.GP5, baudrate=38400)
-#uart = busio.UART(board.GP4, board.GP5, baudrate=57600)
-
-#uart = busio.UART(board.GP16, board.GP17, baudrate=9600)
-#uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
+dabble = Dabble(board.GP0, board.GP1)
 
 while True:
-    #   uart.write(("AT\r\n").encode("ascii"))
-    #    read_and_dump()
-    #uart.write(("AT+ADDR?\r\n").encode("ascii"))
-    read_and_dump()
-
-# Example usage
-#while True:
-    #print("Sending AT command")
-    #response = send_at_command(b'AT')
-    #print(response)
-    #time.sleep(2)
+    message = dabble.read_message()
+    if (message != None):
+        print("Message: " + str(message))
