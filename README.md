@@ -6,3 +6,8 @@ but they've made the code open source.  This library will help
 CircuitPython users to be able to use the Dabble app
 
 Initial support is for the Game Controller mode.
+
+
+## See also
+https://thestempedia.com/docs/dabble/game-pad-module/  STEMPedia site
+https://github.com/STEMpedia/Dabble/tree/master Github repo
