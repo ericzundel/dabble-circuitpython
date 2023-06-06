@@ -1,8 +1,7 @@
 # Simple code to read a message from the Dabble App over the DSDTech HM-10 bluetooth module
 # Author: Eric Z. Ayers <ericzundel@gmail.com>
 
-
-"""CircuitPython Essentials UART Serial example"""
+"""CircuitPython Example of how to read data from the Dabble app"""
 import binascii
 import board
 import busio
@@ -75,11 +74,11 @@ class DabbleGameMessage():
         return self._direction_data & 0x01
 
     @property
-    def left_arrow_pressed(self):
+    def down_arrow_pressed(self):
         return self._direction_data & 0x02
 
     @property
-    def down_arrow_pressed(self):
+    def left_arrow_pressed(self):
         return self._direction_data & 0x04
 
     @property
@@ -87,15 +86,20 @@ class DabbleGameMessage():
         return self._direction_data & 0x08
 
     @property
-    def none_pressed(self):
-        return self._button_data == 0x00 and self._direction_data == 0x00
+    def no_direction_pressed(self):
+        return self._direction_data == 0x00
+
+    @property
+    def no_action_pressed(self):
+        return self._button_data == 0x00
 
     def __str__(self):
 
-        if self.none_pressed:
-            return "NONE"
-
         result = ""
+
+        if self.no_action_pressed:
+            result += "NO_ACTION "
+
         if self.select_pressed:
             result += "SELECT "
         if self.start_pressed:
@@ -108,6 +112,9 @@ class DabbleGameMessage():
             result += "CROSS "
         if self.square_pressed:
             result += "SQUARE "
+
+        if self.no_direction_pressed:
+            result += "NO_DIRECTION "
         if self.up_arrow_pressed:
             result += "UP "
         if self.left_arrow_pressed:
@@ -126,3 +133,16 @@ while True:
     message = dabble.read_message()
     if (message != None):
         print("Message: " + str(message))
+        # Implement tank steering on a 2 wheeled robot
+        if (message.up_arrow_pressed):
+            print("Move both motors forward")
+        elif (message.down_arrow_pressed):
+            print("Move both motors backward")
+        elif (message.right_arrow_pressed):
+            print("Move left motor forward and right motor backward")
+        elif (message.left_arrow_pressed):
+            print("Move left motor backward and right motor forward")
+        elif (message.no_direction_pressed):
+            print("Stop both motors")
+        else:
+            print("Something Crazy happened with direction!")
