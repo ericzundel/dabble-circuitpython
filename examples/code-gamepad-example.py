@@ -28,4 +28,21 @@ while True:
         elif (message.no_direction_pressed):
             print("Stop both motors")
         else:
-            print("Something Crazy happened with direction!")
+            print("Something crazy happened with direction!")
+
+        if (message.triangle_pressed):
+            print("Raise arm")
+        elif (message.circle_pressed):
+            print("Lower arm")
+        elif (message.square_pressed):
+            print("Squirt water")
+        elif (message.circle_pressed):
+            print("Fire laser")
+        elif (message.start_pressed):
+            print("Turn on LED")
+        elif (message.select_pressed):
+            print("Do victory dance")
+        elif (message.no_action_pressed):
+            print("No action")
+        else:
+            print("Something crazy happened with action!")
