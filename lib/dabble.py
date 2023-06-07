@@ -18,13 +18,17 @@ def _hex_dump(data):
     return hex_dump_str
 
 class Dabble():
-    def __init__(self, tx_pin, rx_pin):
+    def __init__(self, tx_pin, rx_pin, debug=False):
         # busio.UART(tx, rx, ... baudrate=X)
         self._uart = busio.UART(tx_pin, rx_pin, baudrate=9600, bits=8, parity=None, stop=1, timeout=.05)
+        self._debug = debug
 
     def hex_dump(self, data):
         _hex_dump(data)
 
+    def debug_msg(self, message):
+        if (debug):
+            print(message)
 
     def read_message(self):
         """Returns a DabbleMessage on success, None if there is no message to read."""
@@ -33,21 +37,21 @@ class Dabble():
             return None
 
         if (len(data) != 8):
-            print("Expected 8 bytes, got %d" % len(data))
+            self.debug_msg("Expected 8 bytes, got %d" % len(data))
             return None
 
         if (data[0] != 0xff and data[7] != 0x00):
-            print("expected 0xFF at head and 0x00 at end")
+            self.debug_msg("Expected 0xFF at head and 0x00 at end")
             return None
 
         module_type = data[1]
         if (module_type != 0x01):
-            print("Library only supports Gamepad module on UI. Got: " + _hex_dump(data))
+            print("Dabble library only supports Gamepad module on UI. Got: " + _hex_dump(data))
             return None
 
         function_type = data[2]
         if (data[2] != 0x01): # Game controller type
-            print("Library only supports Digital Controller type. Got: " + _hex_dump(data))
+            print("Dabble library only supports Digital Controller type. Got: " + _hex_dump(data))
             return None
 
         button_data = data[5]

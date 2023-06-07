@@ -10,7 +10,7 @@ import time
 
 from dabble import Dabble
 
-dabble = Dabble(board.GP0, board.GP1)
+dabble = Dabble(board.GP0, board.GP1, debug=True)
 
 while True:
     message = dabble.read_message()
@@ -38,11 +38,11 @@ while True:
             print("Squirt water")
         elif (message.circle_pressed):
             print("Fire laser")
-        elif (message.no_action_pressed):
-            print("No action")
         elif (message.start_pressed):
             print("Turn on LED")
         elif (message.select_pressed):
             print("Do victory dance")
+        elif (message.no_action_pressed):
+            print("No action")
         else:
             print("Something crazy happened with action!")

@@ -10,7 +10,7 @@ import time
 
 from dabble import Dabble
 
-dabble = Dabble(board.GP0, board.GP1)
+dabble = Dabble(board.GP0, board.GP1, debug=True)
 
 while True:
     message = dabble.read_message()
