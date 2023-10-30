@@ -27,7 +27,7 @@ class Dabble():
         _hex_dump(data)
 
     def debug_msg(self, message):
-        if (debug):
+        if (self._debug):
             print(message)
 
     def read_message(self):
